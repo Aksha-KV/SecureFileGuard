@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "outputDirectory": "server/static",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/research", "destination": "/research.html" },
+    { "source": "/results", "destination": "/results.html" }
+  ]
+}

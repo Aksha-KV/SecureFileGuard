@@ -108,6 +108,30 @@ class TestServerSecurity(unittest.TestCase):
         status, headers, data = self._get("/")
         self.assertEqual(status, 200)
 
+    def test_allowed_host_wildcard_and_domain(self):
+        """Verify explicit and wildcard allowed hosts work with port or without."""
+        app.ALLOWED_HOSTS.add("*.onrender.com")
+        app.ALLOWED_HOSTS.add("custom.example.org")
+        try:
+            # Subdomain of *.onrender.com should succeed
+            status, _, _ = self._get("/", headers={"Host": "my-demo.onrender.com"})
+            self.assertEqual(status, 200)
+
+            # Subdomain of *.onrender.com with port
+            status, _, _ = self._get("/", headers={"Host": "my-demo.onrender.com:443"})
+            self.assertEqual(status, 200)
+
+            # custom.example.org should succeed
+            status, _, _ = self._get("/", headers={"Host": "custom.example.org"})
+            self.assertEqual(status, 200)
+
+            # Different domain should still fail with 403
+            status, _, _ = self._get("/", headers={"Host": "attacker.com"})
+            self.assertEqual(status, 403)
+        finally:
+            app.ALLOWED_HOSTS.discard("*.onrender.com")
+            app.ALLOWED_HOSTS.discard("custom.example.org")
+
     def test_security_headers_present(self):
         """2.3: Security response headers: X-Frame-Options, Referrer-Policy, Cross-Origin-Resource-Policy."""
         status, headers, _ = self._get("/")

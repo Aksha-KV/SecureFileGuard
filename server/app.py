@@ -445,6 +445,32 @@ def results_summary():
     }
 
 
+def is_host_allowed(host_str, allowed_set):
+    """Checks if a Host header or Origin netloc matches the allowed host specifications.
+    Supports exact host:port, host-only (defaulting any port), wildcard subdomains (*.example.com), or wildcard *."""
+    if not host_str:
+        return False
+    host_str = host_str.lower().strip()
+    if "*" in allowed_set:
+        return True
+    if host_str in allowed_set:
+        return True
+    host_only = host_str.split(":")[0]
+    if host_only in allowed_set:
+        return True
+    for entry in allowed_set:
+        if entry == "*":
+            return True
+        entry_only = entry.split(":")[0]
+        if ":" not in entry and host_only == entry_only:
+            return True
+        if entry.startswith("*."):
+            suffix = entry[2:]
+            if host_only.endswith("." + suffix) or host_only == suffix:
+                return True
+    return False
+
+
 class H(BaseHTTPRequestHandler):
     server_version = "SFGLab"
     timeout = 10  # A3: per-connection socket timeout
@@ -479,7 +505,7 @@ class H(BaseHTTPRequestHandler):
     def validate_host_and_origin(self):
         allowed = self.get_allowed_hosts()
         host_header = self.headers.get("Host", "").strip().lower()
-        if not host_header or host_header not in allowed:
+        if not host_header or not is_host_allowed(host_header, allowed):
             self.send(403, {"error": "forbidden host: invalid Host header"})
             return False
 
@@ -487,7 +513,7 @@ class H(BaseHTTPRequestHandler):
         if origin_header:
             parsed = urllib.parse.urlparse(origin_header)
             origin_netloc = parsed.netloc.lower()
-            if origin_netloc not in allowed:
+            if not is_host_allowed(origin_netloc, allowed):
                 self.send(403, {"error": "forbidden origin"})
                 return False
         return True
@@ -632,18 +658,34 @@ def check_kernel_and_openat2():
 
 def main():
     global JAIL, TRUST_PROXY
+    env_host = os.environ.get("HOST", "127.0.0.1")
+    env_port_str = os.environ.get("PORT")
+    env_port = int(env_port_str) if env_port_str and env_port_str.isdigit() else 8000
+    env_allowed = os.environ.get("ALLOWED_HOSTS") or os.environ.get("ALLOWED_HOST", "")
+    env_trust_proxy = os.environ.get("TRUST_PROXY", "").lower() in ("1", "true", "yes")
+    env_no_rate_limit = os.environ.get("NO_RATE_LIMIT", "").lower() in ("1", "true", "yes")
+
     ap = argparse.ArgumentParser()
-    ap.add_argument("--host", default="127.0.0.1")
-    ap.add_argument("--port", type=int, default=8000)
-    ap.add_argument("--no-rate-limit", action="store_true", help="Disable in-memory rate limiting")
+    ap.add_argument("--host", default=env_host, help="Host to bind server to (or set HOST env var)")
+    ap.add_argument("--port", type=int, default=env_port, help="Port to bind server to (or set PORT env var)")
+    ap.add_argument("--no-rate-limit", action="store_true", default=env_no_rate_limit, help="Disable in-memory rate limiting")
     ap.add_argument("--allowed-host", action="append", default=[], help="Explicit allowed Host header (can repeat)")
-    ap.add_argument("--trust-proxy", action="store_true", help="Trust X-Forwarded-For header for client IP")
+    ap.add_argument("--trust-proxy", action="store_true", default=env_trust_proxy, help="Trust X-Forwarded-For header for client IP")
     a = ap.parse_args()
 
     if a.no_rate_limit:
         RATE_LIMITER.enabled = False
+
+    if env_allowed:
+        for item in re.split(r"[,;\s]+", env_allowed):
+            if item.strip():
+                ALLOWED_HOSTS.add(item.strip().lower())
     if a.allowed_host:
-        ALLOWED_HOSTS.update(h.strip().lower() for h in a.allowed_host)
+        for entry in a.allowed_host:
+            for item in re.split(r"[,;\s]+", entry):
+                if item.strip():
+                    ALLOWED_HOSTS.add(item.strip().lower())
+
     TRUST_PROXY = a.trust_proxy
 
     check_kernel_and_openat2()

@@ -100,6 +100,60 @@ make test
 
 ---
 
+## Deployment
+
+SecureFileGuard-Web can be hosted either as a full containerized C++17 + Python engine or as a static frontend demo.
+
+### 1. Render (Docker Web Service)
+1. In the [Render Dashboard](https://dashboard.render.com/), select **New + > Web Service** and connect your GitHub repository (`Aksha-KV/SecureFileGuard`).
+2. Select **Docker** as the runtime (Render will automatically detect the root `Dockerfile`).
+3. In the service settings, configure the environment variables:
+   - `HOST`: `0.0.0.0`
+   - `PORT`: `10000` (Render will automatically pass its assigned port via `$PORT`)
+   - `ALLOWED_HOSTS`: `*.onrender.com,your-service-name.onrender.com`
+   - `TRUST_PROXY`: `true`
+4. Click **Deploy**. Render builds the C++ binaries, generates fixtures on native ext4, and serves the lab.
+
+### 2. Fly.io (Linux MicroVM with Docker)
+Fly.io runs native Linux microVMs with modern kernels ($\ge 5.15$), fully supporting `V4` (`openat2` + `RESOLVE_BENEATH`).
+1. Install `flyctl` and log in:
+   ```bash
+   fly auth login
+   ```
+2. Launch using the included `fly.toml`:
+   ```bash
+   fly launch --copy-config
+   ```
+3. Set your deployment secrets/variables:
+   ```bash
+   fly secrets set ALLOWED_HOSTS="*.fly.dev,your-app.fly.dev" TRUST_PROXY="true"
+   ```
+4. Deploy:
+   ```bash
+   fly deploy
+   ```
+
+### 3. Hugging Face Spaces (Docker)
+1. Create a new Space on [Hugging Face](https://huggingface.co/spaces) and select the **Docker** SDK (Blank).
+2. Connect or push your repository.
+3. Hugging Face Spaces automatically builds the `Dockerfile` and expects port `7860`. Set the Space variables:
+   - `PORT`: `7860`
+   - `ALLOWED_HOSTS`: `*.hf.space`
+   - `TRUST_PROXY`: `true`
+
+### 4. Vercel (Static Frontend Demo Only)
+If deploying only the web presentation and static interface (without live C++ backend execution):
+1. Import the repository into [Vercel](https://vercel.com/).
+2. Vercel automatically detects [vercel.json](file:///c:/Users/dell/OneDrive/Desktop/SecureFileGuard-Web-updated/vercel.json), serving `server/static` with clean URLs for `/`, `/research`, and `/results`.
+3. Deploy with zero build configuration needed.
+
+> [!IMPORTANT]
+> **Kernel & Filesystem Requirements for Full Engine:**
+> - **Linux Kernel >= 5.6 Required**: Variant `V4` (`openat2` with `RESOLVE_BENEATH`) requires Linux kernel $\ge 5.6$. On older kernels or non-Linux hosts, `server/app.py` prints an explicit error on startup.
+> - **Native Ext4 / OverlayFS Filesystem Required**: Do not mount fixtures on Windows DrvFS (`/mnt/c`), as Windows mounts do not support `mkfifo` (FIFOs) or Linux symlink properties. Docker containers on Linux, Render, Fly.io, and Hugging Face Spaces satisfy this natively.
+
+---
+
 ## Project Structure
 
 ```

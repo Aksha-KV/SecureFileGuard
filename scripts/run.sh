@@ -15,6 +15,8 @@ fi
 
 PORT="${PORT:-8000}"
 HOST="${HOST:-127.0.0.1}"
+ALLOWED_HOST="${ALLOWED_HOST:-${ALLOWED_HOSTS:-}}"
+EXTRA_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -26,8 +28,21 @@ while [[ $# -gt 0 ]]; do
       HOST="$2"
       shift 2
       ;;
+    --allowed-host)
+      ALLOWED_HOST="$2"
+      EXTRA_ARGS+=("--allowed-host" "$2")
+      shift 2
+      ;;
+    --trust-proxy)
+      EXTRA_ARGS+=("--trust-proxy")
+      shift
+      ;;
+    --no-rate-limit)
+      EXTRA_ARGS+=("--no-rate-limit")
+      shift
+      ;;
     -h|--help)
-      echo "Usage: ./scripts/run.sh [--port 8000] [--host 127.0.0.1]"
+      echo "Usage: ./scripts/run.sh [--port 8000] [--host 127.0.0.1] [--allowed-host <host>] [--trust-proxy] [--no-rate-limit]"
       exit 0
       ;;
     *)
@@ -51,4 +66,7 @@ echo "==> Regenerating fixtures..."
 bash tools/make_fixtures.sh runtime/fixtures
 
 echo "==> Starting SecureFileGuard server on http://$HOST:$PORT..."
-exec python3 server/app.py --host "$HOST" --port "$PORT"
+if [[ -n "$ALLOWED_HOST" && "${#EXTRA_ARGS[@]}" -eq 0 ]]; then
+  EXTRA_ARGS+=("--allowed-host" "$ALLOWED_HOST")
+fi
+exec python3 server/app.py --host "$HOST" --port "$PORT" "${EXTRA_ARGS[@]}"
