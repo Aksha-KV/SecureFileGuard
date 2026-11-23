@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Results - SecureFileGuard Lab</title>
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <div class="brand"><img src="/logo.svg" alt=""><div>
+    <h1>SecureFileGuard Lab</h1>
+    <p class="sub">Measured results: five C++ path checks on the same 30 test paths.</p>
+  </div></div>
+  <nav>
+    <a href="/">Lab</a>
+    <a href="/research">Research</a>
+    <a href="/results" class="on" aria-current="page">Results</a>
+  </nav>
+</header>
+<main>
+  <p id="err" role="alert"></p>
+  <p id="intro" class="note">Loading results...</p>
+
+  <h2>Summary per variant</h2>
+  <div class="card wrap"><table id="summary"></table></div>
+  <p class="note">Block rate = unauthorised requests correctly blocked. Success rate = legitimate requests correctly allowed. A false allow is a security failure; a false block is too strict.</p>
+
+  <h2>Charts</h2>
+  <div class="charts">
+    <div class="card" id="ch-rates"></div>
+    <div class="card" id="ch-errors"></div>
+  </div>
+
+  <h2>Every test</h2>
+  <div class="tools">
+    <label><input type="checkbox" id="onlybad"> Show only tests where some variant was wrong</label>
+    <a href="/results.csv" download="results.csv">Download results.csv</a>
+  </div>
+  <div class="card wrap"><table id="detail"></table></div>
+  <p class="note">* = the variant disagreed with the oracle. Results describe this fixture folder and test set only; they are not a proof of safety.</p>
+</main>
+<script src="/charts.js"></script>
+</body>
+</html>

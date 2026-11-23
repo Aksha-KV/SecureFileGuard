@@ -1,0 +1,21 @@
+# Build artifacts
+build/
+*.o
+*.d
+
+# Runtime data & fixtures
+runtime/
+results/results.csv
+
+# Python
+__pycache__/
+*.pyc
+
+# PowerShell target cache
+powershell/.wsl_dir
+
+# OS / Editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

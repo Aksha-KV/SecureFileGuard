@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SecureFileGuard Lab</title>
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <h1>SecureFileGuard Lab</h1>
+  <p class="sub">Which C++ path checks really keep a file request inside its folder? Try your own inputs against five strategies.</p>
+  <p class="root">Jail folder: <code id="root">…</code> &nbsp;|&nbsp; Policy: <span id="policy"></span></p>
+  <nav id="tabs">
+    <button data-tab="play" class="on">Playground</button>
+    <button data-tab="suite">Test suite</button>
+    <button data-tab="race">Race demo</button>
+    <button data-tab="jail">Jail folder</button>
+    <button data-tab="about">About</button>
+    <a class="navlink" href="/research">Research</a>
+    <a class="navlink" href="/results">Results</a>
+  </nav>
+</header>
+<main>
+  <section id="play">
+    <div class="row">
+      <input id="path" type="text" spellcheck="false" placeholder="Type a path, e.g. ../outside_secret.txt" autocomplete="off">
+      <button id="go" class="primary">Check</button>
+    </div>
+    <p class="hint">Or pick a preset:</p>
+    <div id="presets"></div>
+    <div id="result"></div>
+    <div id="env-panel"></div>
+  </section>
+
+  <section id="suite" hidden>
+    <p>Runs every preset through all five variants. Expected ground truth is resolved via <code>realpath(3)</code> (independent POSIX resolution) and checks containment, file regular-ness, and existence.</p>
+    <div class="card" style="margin: 12px 0; padding: 14px; background: #1a1e26; border: 1px solid #2d3545; border-radius: 6px;">
+      <h3 style="margin-top:0; color:#4ea8de; font-size:1.05rem;">How to read these results</h3>
+      <p style="margin-bottom:8px; font-size:0.9rem; color:#cbd5e1;">Evaluation cleanly separates true security containment failures from file-type and syntax policy differences:</p>
+      <ul style="margin:0; padding-left:20px; font-size:0.88rem; line-height:1.6; color:#94a3b8;">
+        <li><strong style="color:#ef4444;">Containment Failures (Security Vulnerability):</strong> The variant ALLOWED a path that resolves outside the jail folder (e.g. <code>../</code> traversal, escaping symlinks). This represents an unauthorized file access breach.</li>
+        <li><strong style="color:#f59e0b;">Type Policy Mismatches:</strong> The variant ALLOWED a directory or FIFO that stays completely inside the jail. Not a security escape, but a disagreement with the strict regular-file policy.</li>
+        <li><strong style="color:#eab308;">Missing-Name Policy Mismatches:</strong> The variant ALLOWED a non-existent name or malformed path (e.g. trailing dots, missing file, backslashes, percent-encoding). Not an escape, but a disagreement with the strict policy.</li>
+        <li><strong style="color:#10b981;">Allow Rate (Legit):</strong> Legitimate regular files located inside the jail folder that were successfully allowed.</li>
+      </ul>
+    </div>
+    <div class="row">
+      <button id="runsuite" class="primary">Run full suite</button>
+      <a href="/results.csv" download="results.csv" class="btn">Download results.csv</a>
+    </div>
+    <div id="suiteout"></div>
+  </section>
+
+  <section id="race" hidden>
+    <p>An attacker thread keeps swapping <code>root/target</code> between a normal file and a symlink to a file outside the jail. The victim checks, then opens. Runs on the server's own temporary folder only.</p>
+    <div id="race-env"></div>
+    <div class="row">
+      <label>Attempts per variant
+        <select id="iters"><option>10000</option><option selected>20000</option><option>50000</option><option>100000</option></select>
+      </label>
+      <label style="margin-left:8px">Runs
+        <select id="runs"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+      </label>
+      <button id="runrace" class="primary">Run race demo</button>
+    </div>
+    <div id="raceout"></div>
+  </section>
+
+  <section id="jail" hidden>
+    <p>The test folder the server builds on start-up. <span class="b-symlink">symlink</span> entries show where they point.</p>
+    <div id="tree"></div>
+  </section>
+
+  <section id="about" hidden>
+    <h2>What this shows</h2>
+    <div id="variants"></div>
+    <h2>V4 (openat2 RESOLVE_BENEATH) Known Limitations</h2>
+    <ul>
+      <li><strong>Linux 5.6+ Kernel Required:</strong> <code>openat2</code> with <code>RESOLVE_BENEATH</code> is a Linux-specific system call introduced in kernel 5.6. It is not available on older Linux kernels, macOS, BSD, or native Windows.</li>
+      <li><strong>Regular Files Only:</strong> To prevent denial of service and special device access, V4 enforces regular files only (denying directories, character/block devices, and FIFOs).</li>
+      <li><strong>Absolute In-Jail Symlinks Denied:</strong> By design, <code>RESOLVE_BENEATH</code> rejects any symlink whose target begins with <code>/</code>, even if that target would resolve inside the jail root. This avoids path ambiguity and root-breakout bypasses.</li>
+      <li><strong>No Magic Symlinks:</strong> Enforces <code>RESOLVE_NO_MAGICLINKS</code> to block traversal through procfs magic links (e.g., <code>/proc/self/fd</code>).</li>
+    </ul>
+    <h2>Limits worth stating in your report</h2>
+    <ul>
+      <li>Linux only (V4 needs kernel 5.6+). Windows and macOS have different symlink, case and Unicode rules.</li>
+      <li>Hard links, bind mounts and a compromised kernel are out of scope.</li>
+      <li>The race demo is probabilistic: 0 escapes in a short run is not proof of safety.</li>
+      <li>V4 denying absolute symlinks that point inside is a documented trade-off, not a bug.</li>
+    </ul>
+  </section>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>

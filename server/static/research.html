@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research gap - SecureFileGuard Lab</title>
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <div class="brand"><img src="/logo.svg" alt=""><div>
+    <h1>SecureFileGuard Lab</h1>
+    <p class="sub">Research gap: what existing work covers, and what this project adds.</p>
+  </div></div>
+  <nav>
+    <a href="/">Lab</a>
+    <a href="/research" class="on" aria-current="page">Research</a>
+    <a href="/results">Results</a>
+  </nav>
+</header>
+<main>
+  <p class="lead">Path traversal is well documented. Developers still have to pick a C++ way to stop it, and the usual choices behave differently. This project measures how differently.</p>
+
+  <h2>What existing work shows</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Akhoundali et al., ASIA CCS 2025 [1]</h3>
+      <div class="stat">1,756</div>
+      <p>open-source GitHub projects confirmed vulnerable to one recurring CWE-22 code pattern.</p>
+      <p>Only 63 of 464 reports (14%) led to a fix.</p>
+      <p class="cite">Focus: how common the pattern is, and how it gets fixed.</p>
+    </div>
+    <div class="card">
+      <h3>FAVDisco, Zhao et al., ACM TOSEM 2026 [2]</h3>
+      <div class="stat">92.1% / 83.3%</div>
+      <p>precision and recall on disclosed file-access vulnerabilities, with 13 zero-days found in 10 services.</p>
+      <p class="cite">Focus: discovering file-access bugs automatically (Windows). The numbers are the authors' own.</p>
+    </div>
+    <div class="card">
+      <h3>OWASP and CWE guidance [3-6]</h3>
+      <p>WSTG-ATHZ-01 tells testers how to probe for traversal. CWE-22, CWE-59 and CWE-367 name the weaknesses: path escape, link following, and check-then-use races.</p>
+      <p class="cite">Guidance and classification, not measured comparisons.</p>
+    </div>
+  </div>
+
+  <h2>The gap</h2>
+  <div class="card gap">
+    <p>The studies above find and classify these bugs. The two papers covered here do not compare, side by side, the fixes a C++ developer would actually write: a string-prefix check, <code>lexically_normal</code>, <code>weakly_canonical</code>, <code>canonical</code>, or a kernel-enforced open.</p>
+    <p>That leaves a practical question open: on the same set of attack inputs, which of these checks fail, and in which way?</p>
+    <p class="cite">Scope: this reflects the two papers and guidance listed on this page, not a full literature review.</p>
+  </div>
+
+  <h2>What SecureFileGuard adds</h2>
+  <div class="card mine">
+    <p>Five implementations (V0 to V4) behind one interface, run against the same 30 test paths covering traversal, prefix confusion, symlink escapes, absolute paths, encoded names, special files and error cases. Each answer is graded against an independent oracle: resolve the path fully, then ask whether the target exists, is a regular file, and lies inside the jail.</p>
+    <p>A race demo then shows what a check-then-open design cannot fix and a single kernel call (<code>openat2</code> with <code>RESOLVE_BENEATH</code>) can.</p>
+    <p><a href="/results">See the measured results</a> or <a href="/">try your own path in the Lab</a>.</p>
+  </div>
+
+  <h2>How the weaknesses map to the tests</h2>
+  <div class="card wrap">
+    <table>
+      <tr><th>Weakness</th><th>Attack in this lab</th><th>Weak variants</th><th>Defence</th></tr>
+      <tr><td class="v">CWE-22<br><span class="cite">path escapes the folder</span></td>
+          <td><code>../outside_secret.txt</code>, sibling folder <code>secure_files_backup/</code></td>
+          <td>V0 (raw string prefix)</td>
+          <td>Resolve, then compare path components, not text (V1 to V4)</td></tr>
+      <tr><td class="v">CWE-59<br><span class="cite">link followed to outside</span></td>
+          <td>A symlink inside the jail that points outside it</td>
+          <td>V0, V1 (never touch the disk)</td>
+          <td>Resolve links before deciding (V2, V3), or let the kernel refuse them (V4)</td></tr>
+      <tr><td class="v">CWE-367<br><span class="cite">check-then-use race</span></td>
+          <td>Thread swaps a file for a symlink between the check and the open</td>
+          <td>V0 to V3 (check, then open by name)</td>
+          <td>Check and open in one call and keep the descriptor (V4)</td></tr>
+    </table>
+  </div>
+
+  <h2>Limits of this work</h2>
+  <ul>
+    <li>Linux only: V4 needs kernel 5.6 or later. Other systems have different symlink, case and Unicode rules.</li>
+    <li>One fixture folder and 30 tests. The results describe this test set, not every possible input.</li>
+    <li>The race demo is probabilistic, so zero escapes in a run is not proof of safety.</li>
+    <li>Path checking is only one layer of file-access security.</li>
+  </ul>
+</main>
+<footer>
+  [1] Akhoundali et al., ACM ASIA CCS 2025, doi 10.1145/3708821.3736220. [2] Zhao et al., ACM TOSEM 35(4), 2026, doi 10.1145/3744901. [3] OWASP WSTG-ATHZ-01. [4-6] MITRE CWE-22, CWE-59, CWE-367.
+</footer>
+</body>
+</html>
