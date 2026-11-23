@@ -1,0 +1,181 @@
+﻿variant,technique,test_id,category,path,expected,actual,verdict,containment,type_check,policy_check
+V0,naive prefix,1,legit,"notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V1,lexically_normal,1,legit,"notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V2,weakly_canonical,1,legit,"notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V3,canonical,1,legit,"notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,1,legit,"notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V0,naive prefix,2,legit,"reports/marks.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V1,lexically_normal,2,legit,"reports/marks.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V2,weakly_canonical,2,legit,"reports/marks.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V3,canonical,2,legit,"reports/marks.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,2,legit,"reports/marks.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V0,naive prefix,3,legit,"./notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V1,lexically_normal,3,legit,"./notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V2,weakly_canonical,3,legit,"./notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V3,canonical,3,legit,"./notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,3,legit,"./notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V0,naive prefix,4,legit,"reports/../notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V1,lexically_normal,4,legit,"reports/../notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V2,weakly_canonical,4,legit,"reports/../notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V3,canonical,4,legit,"reports/../notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,4,legit,"reports/../notes.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V0,naive prefix,5,legit,"a..b.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V1,lexically_normal,5,legit,"a..b.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V2,weakly_canonical,5,legit,"a..b.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V3,canonical,5,legit,"a..b.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,5,legit,"a..b.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V0,naive prefix,6,legit,"internal_link.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V1,lexically_normal,6,legit,"internal_link.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V2,weakly_canonical,6,legit,"internal_link.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V3,canonical,6,legit,"internal_link.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,6,legit,"internal_link.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V0,naive prefix,7,traversal,"../outside_secret.txt",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,7,traversal,"../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V2,weakly_canonical,7,traversal,"../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,7,traversal,"../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,7,traversal,"../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,8,traversal,"../../etc/passwd",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,8,traversal,"../../etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V2,weakly_canonical,8,traversal,"../../etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,8,traversal,"../../etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,8,traversal,"../../etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,9,traversal,"reports/../../outside_secret.txt",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,9,traversal,"reports/../../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V2,weakly_canonical,9,traversal,"reports/../../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,9,traversal,"reports/../../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,9,traversal,"reports/../../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,10,traversal,"../../../../../../../../etc/passwd",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,10,traversal,"../../../../../../../../etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V2,weakly_canonical,10,traversal,"../../../../../../../../etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,10,traversal,"../../../../../../../../etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,10,traversal,"../../../../../../../../etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,11,absolute,"/etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V1,lexically_normal,11,absolute,"/etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V2,weakly_canonical,11,absolute,"/etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,11,absolute,"/etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,11,absolute,"/etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,12,absolute,"/home/dell/SecureFileGuard-W...(len=78)",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V1,lexically_normal,12,absolute,"/home/dell/SecureFileGuard-W...(len=78)",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V2,weakly_canonical,12,absolute,"/home/dell/SecureFileGuard-W...(len=78)",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V3,canonical,12,absolute,"/home/dell/SecureFileGuard-W...(len=78)",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,12,absolute,"/home/dell/SecureFileGuard-W...(len=78)",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V0,naive prefix,13,prefix,"../secure_files_backup/private.txt",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,13,prefix,"../secure_files_backup/private.txt",DENY,DENY,correct,PASS,PASS,PASS
+V2,weakly_canonical,13,prefix,"../secure_files_backup/private.txt",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,13,prefix,"../secure_files_backup/private.txt",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,13,prefix,"../secure_files_backup/private.txt",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,14,symlink,"link_to_outside_file",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,14,symlink,"link_to_outside_file",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V2,weakly_canonical,14,symlink,"link_to_outside_file",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,14,symlink,"link_to_outside_file",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,14,symlink,"link_to_outside_file",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,15,symlink,"link_to_outside_dir/secret.txt",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,15,symlink,"link_to_outside_dir/secret.txt",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V2,weakly_canonical,15,symlink,"link_to_outside_dir/secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,15,symlink,"link_to_outside_dir/secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,15,symlink,"link_to_outside_dir/secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,16,symlink,"chain_a",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,16,symlink,"chain_a",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V2,weakly_canonical,16,symlink,"chain_a",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,16,symlink,"chain_a",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,16,symlink,"chain_a",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,17,error,"missing.txt",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V1,lexically_normal,17,error,"missing.txt",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V2,weakly_canonical,17,error,"missing.txt",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,17,error,"missing.txt",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,17,error,"missing.txt",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,18,error,"broken_link",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,18,error,"broken_link",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V2,weakly_canonical,18,error,"broken_link",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,18,error,"broken_link",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,18,error,"broken_link",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,19,error,"",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V1,lexically_normal,19,error,"",DENY,DENY,correct,PASS,PASS,PASS
+V2,weakly_canonical,19,error,"",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,19,error,"",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,19,error,"",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,20,error,"aaaaaaaaaaaaaaaaaaaaaaaaaaaa...(len=5000)",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V1,lexically_normal,20,error,"aaaaaaaaaaaaaaaaaaaaaaaaaaaa...(len=5000)",DENY,DENY,correct,PASS,PASS,PASS
+V2,weakly_canonical,20,error,"aaaaaaaaaaaaaaaaaaaaaaaaaaaa...(len=5000)",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,20,error,"aaaaaaaaaaaaaaaaaaaaaaaaaaaa...(len=5000)",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,20,error,"aaaaaaaaaaaaaaaaaaaaaaaaaaaa...(len=5000)",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,21,special,".",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V1,lexically_normal,21,special,".",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V2,weakly_canonical,21,special,".",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V3,canonical,21,special,".",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V4,openat2 BENEATH,21,special,".",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,22,special,"reports",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V1,lexically_normal,22,special,"reports",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V2,weakly_canonical,22,special,"reports",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V3,canonical,22,special,"reports",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V4,openat2 BENEATH,22,special,"reports",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,23,special,"fifo",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V1,lexically_normal,23,special,"fifo",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V2,weakly_canonical,23,special,"fifo",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V3,canonical,23,special,"fifo",DENY,ALLOW,type_mismatch,PASS,FAIL,PASS
+V4,openat2 BENEATH,23,special,"fifo",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,24,legit,"reports//marks.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V1,lexically_normal,24,legit,"reports//marks.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V2,weakly_canonical,24,legit,"reports//marks.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V3,canonical,24,legit,"reports//marks.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,24,legit,"reports//marks.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V0,naive prefix,25,traversal,"notes.txt/../../outside_secret.txt",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,25,traversal,"notes.txt/../../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V2,weakly_canonical,25,traversal,"notes.txt/../../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,25,traversal,"notes.txt/../../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,25,traversal,"notes.txt/../../outside_secret.txt",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,26,symlink,"loop_a",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,26,symlink,"loop_a",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V2,weakly_canonical,26,symlink,"loop_a",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,26,symlink,"loop_a",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,26,symlink,"loop_a",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,27,symlink,"abs_internal_link",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V1,lexically_normal,27,symlink,"abs_internal_link",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V2,weakly_canonical,27,symlink,"abs_internal_link",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V3,canonical,27,symlink,"abs_internal_link",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,27,symlink,"abs_internal_link",ALLOW,DENY,false_block,PASS,PASS,PASS
+V0,naive prefix,28,encoded,"..%2f..%2fetc%2fpasswd",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V1,lexically_normal,28,encoded,"..%2f..%2fetc%2fpasswd",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V2,weakly_canonical,28,encoded,"..%2f..%2fetc%2fpasswd",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,28,encoded,"..%2f..%2fetc%2fpasswd",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,28,encoded,"..%2f..%2fetc%2fpasswd",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,29,encoded,"..\..\etc\passwd",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V1,lexically_normal,29,encoded,"..\..\etc\passwd",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V2,weakly_canonical,29,encoded,"..\..\etc\passwd",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,29,encoded,"..\..\etc\passwd",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,29,encoded,"..\..\etc\passwd",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,30,error,"notes.txt/",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V1,lexically_normal,30,error,"notes.txt/",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V2,weakly_canonical,30,error,"notes.txt/",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,30,error,"notes.txt/",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,30,error,"notes.txt/",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,31,error,"notes.txt...",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V1,lexically_normal,31,error,"notes.txt...",DENY,ALLOW,policy_mismatch,PASS,PASS,FAIL
+V2,weakly_canonical,31,error,"notes.txt...",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,31,error,"notes.txt...",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,31,error,"notes.txt...",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,32,traversal,"//etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V1,lexically_normal,32,traversal,"//etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V2,weakly_canonical,32,traversal,"//etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,32,traversal,"//etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,32,traversal,"//etc/passwd",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,33,symlink,"reports/sub_escape",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,33,symlink,"reports/sub_escape",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V2,weakly_canonical,33,symlink,"reports/sub_escape",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,33,symlink,"reports/sub_escape",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,33,symlink,"reports/sub_escape",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,34,traversal,"link_to_reports/../../outsid...(len=40)",DENY,ALLOW,containment_failure,FAIL,PASS,PASS
+V1,lexically_normal,34,traversal,"link_to_reports/../../outsid...(len=40)",DENY,DENY,correct,PASS,PASS,PASS
+V2,weakly_canonical,34,traversal,"link_to_reports/../../outsid...(len=40)",DENY,DENY,correct,PASS,PASS,PASS
+V3,canonical,34,traversal,"link_to_reports/../../outsid...(len=40)",DENY,DENY,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,34,traversal,"link_to_reports/../../outsid...(len=40)",DENY,DENY,correct,PASS,PASS,PASS
+V0,naive prefix,35,legit,"././././././././././././././...(len=409)",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V1,lexically_normal,35,legit,"././././././././././././././...(len=409)",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V2,weakly_canonical,35,legit,"././././././././././././././...(len=409)",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V3,canonical,35,legit,"././././././././././././././...(len=409)",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,35,legit,"././././././././././././././...(len=409)",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V0,naive prefix,36,legit,"sécurité_🔒.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V1,lexically_normal,36,legit,"sécurité_🔒.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V2,weakly_canonical,36,legit,"sécurité_🔒.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V3,canonical,36,legit,"sécurité_🔒.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS
+V4,openat2 BENEATH,36,legit,"sécurité_🔒.txt",ALLOW,ALLOW,correct,PASS,PASS,PASS

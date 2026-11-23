@@ -237,6 +237,36 @@ class TestServerSecurity(unittest.TestCase):
         j = json.loads(data.decode("utf-8"))
         self.assertIn("error", j)
 
+    def test_results_csv_download_headers_and_content(self):
+        """Verify /results.csv and /api/results.csv serve CSV with attachment disposition."""
+        for path in ("/results.csv", "/api/results.csv"):
+            status, headers, data = self._get(path)
+            self.assertEqual(status, 200)
+            h_dict = {k.lower(): v for k, v in headers}
+            self.assertIn("text/csv", h_dict.get("content-type", ""))
+            self.assertIn('attachment; filename="results.csv"', h_dict.get("content-disposition", ""))
+            csv_text = data.decode("utf-8")
+            self.assertTrue(csv_text.startswith("variant,technique,test_id,category,path,expected,actual,verdict"))
+
+    def test_auto_generate_results_csv_if_missing(self):
+        """Verify /api/results auto-generates results.csv when it does not exist."""
+        if os.path.exists(app.RESULTS_CSV):
+            os.remove(app.RESULTS_CSV)
+        self.assertFalse(os.path.exists(app.RESULTS_CSV))
+        status, _, data = self._get("/api/results")
+        self.assertEqual(status, 200)
+        self.assertTrue(os.path.exists(app.RESULTS_CSV))
+        self.assertGreater(os.path.getsize(app.RESULTS_CSV), 0)
+
+    def test_api_not_found_returns_json_not_html(self):
+        """Verify unknown /api/* endpoints return 404 JSON, never HTML."""
+        status, headers, data = self._get("/api/nonexistent_route")
+        self.assertEqual(status, 404)
+        h_dict = {k.lower(): v for k, v in headers}
+        self.assertIn("application/json", h_dict.get("content-type", ""))
+        j = json.loads(data.decode("utf-8"))
+        self.assertEqual(j.get("error"), "not found")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -106,7 +106,26 @@ function renderDetail(d) {
   $("#detail").replaceChildren(head, ...rows);
 }
 
-fetch("/api/results").then((r) => r.json().then((j) => { if (!r.ok) throw new Error(j.error || r.statusText); return j; }))
-  .then((d) => { renderSummary(d); renderCharts(d); renderDetail(d); $("#onlybad").addEventListener("change", () => renderDetail(d)); })
-  .catch((e) => { $("#err").textContent = "Could not load results: " + e.message; $("#intro").textContent = ""; });
+fetch("/api/results")
+  .then(async (r) => {
+    const text = await r.text();
+    let j;
+    try {
+      j = JSON.parse(text);
+    } catch (_) {
+      throw new Error(`Server returned non-JSON response (${r.status} ${r.statusText})`);
+    }
+    if (!r.ok) throw new Error(j.error || r.statusText || "Request failed");
+    return j;
+  })
+  .then((d) => {
+    renderSummary(d);
+    renderCharts(d);
+    renderDetail(d);
+    $("#onlybad")?.addEventListener("change", () => renderDetail(d));
+  })
+  .catch((e) => {
+    $("#err").textContent = "Could not load results: " + e.message;
+    $("#intro").textContent = "";
+  });
 }

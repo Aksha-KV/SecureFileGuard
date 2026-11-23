@@ -5,7 +5,8 @@ build/
 
 # Runtime data & fixtures
 runtime/
-results/results.csv
+# Keep baseline results/results.csv tracked
+!results/results.csv
 
 # Python
 __pycache__/

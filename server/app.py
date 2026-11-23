@@ -17,6 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 BASE = os.path.dirname(HERE)
 CLI = os.path.join(BASE, "build", "guard_cli")
 RACE = os.path.join(BASE, "build", "toctou_race")
+RUN_TESTS = os.path.join(BASE, "build", "run_tests")
 FIX = os.path.join(BASE, "runtime", "fixtures")
 STATIC = {"/": ("index.html", "text/html; charset=utf-8"),
           "/app.js": ("app.js", "text/javascript; charset=utf-8"),
@@ -269,7 +270,93 @@ def suite():
             "accuracy": round(100.0 * correct / len(PRESETS), 1),
             "false_allows": cf
         })
+    try:
+        save_suite_to_csv(rows)
+    except Exception as e:
+        print("Notice: could not save suite to CSV:", e)
     return {"rows": rows, "metrics": metrics, "n": len(PRESETS)}
+
+
+def save_suite_to_csv(rows, target_path=RESULTS_CSV):
+    try:
+        os.makedirs(os.path.dirname(target_path), exist_ok=True)
+        with open(target_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "variant", "technique", "test_id", "category", "path",
+                "expected", "actual", "verdict", "containment", "type_check", "policy_check"
+            ])
+            for r in rows:
+                for v in r.get("variants", []):
+                    verd = v.get("verdict", "")
+                    cont = "FAIL" if verd in ("containment_failure", "false_allow") else "PASS"
+                    typ = "FAIL" if verd == "type_mismatch" else "PASS"
+                    pol = "FAIL" if verd == "policy_mismatch" else "PASS"
+                    clean_path = r.get("label", "")
+                    if len(clean_path) > 36:
+                        clean_path = clean_path[:28] + "...(len=" + str(len(clean_path)) + ")"
+                    writer.writerow([
+                        v.get("id", ""),
+                        v.get("name", ""),
+                        r.get("id", 0),
+                        r.get("category", ""),
+                        clean_path,
+                        r.get("expected", ""),
+                        v.get("decision", ""),
+                        verd,
+                        cont,
+                        typ,
+                        pol
+                    ])
+        static_csv = os.path.join(HERE, "static", "results.csv")
+        try:
+            import shutil
+            shutil.copyfile(target_path, static_csv)
+        except Exception:
+            pass
+    except Exception as e:
+        print("Warning: unable to save suite to CSV:", e)
+
+
+def ensure_results_csv():
+    """Ensure results/results.csv exists and is readable. Auto-generates if missing."""
+    if os.path.exists(RESULTS_CSV) and os.path.getsize(RESULTS_CSV) > 0:
+        return True
+
+    os.makedirs(os.path.dirname(RESULTS_CSV), exist_ok=True)
+    static_csv = os.path.join(HERE, "static", "results.csv")
+    if os.path.exists(static_csv) and os.path.getsize(static_csv) > 0:
+        try:
+            import shutil
+            shutil.copyfile(static_csv, RESULTS_CSV)
+            return True
+        except Exception:
+            pass
+
+    # Try running build/run_tests if binary and fixtures are present
+    if os.path.exists(RUN_TESTS) and os.path.exists(FIX):
+        try:
+            p = subprocess.run([RUN_TESTS, FIX, RESULTS_CSV], capture_output=True, timeout=30)
+            if p.returncode == 0 and os.path.exists(RESULTS_CSV) and os.path.getsize(RESULTS_CSV) > 0:
+                try:
+                    import shutil
+                    shutil.copyfile(RESULTS_CSV, static_csv)
+                except Exception:
+                    pass
+                return True
+        except Exception as e:
+            print("Notice: build/run_tests in ensure_results_csv failed:", e)
+
+    # Fallback to generating via suite() if CLI binary is present
+    if os.path.exists(CLI):
+        try:
+            suite()
+            if os.path.exists(RESULTS_CSV) and os.path.getsize(RESULTS_CSV) > 0:
+                return True
+        except Exception as e:
+            print("Notice: suite() generation in ensure_results_csv failed:", e)
+
+    return os.path.exists(RESULTS_CSV) and os.path.getsize(RESULTS_CSV) > 0
 
 
 def fixtures_tree():
@@ -329,7 +416,8 @@ def race(iters, runs=1):
 
 def results_summary():
     """Aggregate results/results.csv (written by build/run_tests) into per-variant metrics."""
-    with open(RESULTS_CSV, newline="") as f:
+    ensure_results_csv()
+    with open(RESULTS_CSV, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     order, per, detail = [], {}, {}
     for r in rows:
@@ -518,7 +606,7 @@ class H(BaseHTTPRequestHandler):
                 return False
         return True
 
-    def send(self, code, body, ctype="application/json; charset=utf-8"):
+    def send(self, code, body, ctype="application/json; charset=utf-8", headers=None):
         if not isinstance(body, bytes):
             body = json.dumps(body).encode()
         self.send_response(code)
@@ -530,6 +618,9 @@ class H(BaseHTTPRequestHandler):
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("Cross-Origin-Resource-Policy", "same-origin")
+        if headers:
+            for k, val in (headers.items() if isinstance(headers, dict) else headers):
+                self.send_header(k, str(val))
         self.end_headers()
         self.wfile.write(body)
 
@@ -546,17 +637,25 @@ class H(BaseHTTPRequestHandler):
             fn, ct = STATIC[route]
             with open(os.path.join(HERE, "static", fn), "rb") as f:
                 return self.send(200, f.read(), ct)
-        if route == "/results.csv":
+        if route in ("/results.csv", "/api/results.csv"):
+            ensure_results_csv()
             try:
                 with open(RESULTS_CSV, "rb") as f:
-                    return self.send(200, f.read(), "text/csv; charset=utf-8")
+                    csv_data = f.read()
+                return self.send(
+                    200,
+                    csv_data,
+                    "text/csv; charset=utf-8",
+                    headers={"Content-Disposition": 'attachment; filename="results.csv"'}
+                )
             except OSError:
-                return self.send(404, {"error": "results.csv not found"})
+                return self.send(404, {"error": "results/results.csv not found"})
         if route == "/api/results":
+            ensure_results_csv()
             try:
                 return self.send(200, results_summary())
-            except (OSError, KeyError, ValueError):
-                return self.send(404, {"error": "results/results.csv missing or unreadable"})
+            except (OSError, KeyError, ValueError) as err:
+                return self.send(404, {"error": f"results/results.csv missing or unreadable: {err}"})
         if route == "/api/info":
             return self.send(200, {
                 "root": JAIL,
@@ -695,6 +794,8 @@ def main():
             sys.exit("Missing %s - run `make` first." % b)
     subprocess.run(["bash", os.path.join(BASE, "tools", "make_fixtures.sh"), FIX], check=True, stdout=subprocess.DEVNULL)
     JAIL = os.path.realpath(os.path.join(FIX, "secure_files"))
+    os.makedirs(os.path.join(BASE, "results"), exist_ok=True)
+    ensure_results_csv()
     print("Jail root: %s\nOpen http://%s:%d" % (JAIL, a.host, a.port))
     if a.host not in ("127.0.0.1", "localhost"):
         print("WARNING: listening beyond localhost. Run inside a container/VM; the race demo is CPU heavy.")

@@ -26,6 +26,12 @@ RUN make clean && make all
 # Generate test fixtures on native Linux filesystem path
 RUN bash tools/make_fixtures.sh runtime/fixtures
 
+# Pre-generate baseline results/results.csv during container build and ensure results/ is writable
+RUN mkdir -p results && \
+    ./build/run_tests runtime/fixtures results/results.csv && \
+    cp results/results.csv server/static/results.csv && \
+    chmod -R 777 results
+
 # Expose default port (overridden at runtime by cloud hosts via $PORT)
 ENV HOST=0.0.0.0
 ENV PORT=10000

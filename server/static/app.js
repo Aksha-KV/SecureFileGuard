@@ -55,6 +55,7 @@ async function runSuite() {
   const b = $("#runsuite"); b.disabled = true; const out = $("#suiteout"); out.replaceChildren("Running…");
   try {
     const s = await api("/api/suite", {});
+    window.ACTIVE_SUITE_DATA = s;
     const ids = s.metrics.map((m) => m.id);
     const head = h("tr", {}, h("th", {}, "#"), h("th", {}, "Type"), h("th", {}, "Input"), h("th", {}, "Expected"),
       ids.map((i) => h("th", {}, i)));
@@ -171,6 +172,79 @@ document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("cli
 }));
 $("#go").addEventListener("click", () => check({ path: $("#path").value }, $("#path").value));
 $("#path").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#go").click(); });
+function downloadBlob(content, filename, type = "text/csv;charset=utf-8;") {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function suiteToCsv(s) {
+  const header = ["variant", "technique", "test_id", "category", "path", "expected", "actual", "verdict", "containment", "type_check", "policy_check"];
+  const lines = [header.join(",")];
+  for (const r of s.rows) {
+    for (const v of r.variants) {
+      const verd = v.verdict || "";
+      const cont = (verd === "containment_failure" || verd === "false_allow") ? "FAIL" : "PASS";
+      const typ = verd === "type_mismatch" ? "FAIL" : "PASS";
+      const pol = verd === "policy_mismatch" ? "FAIL" : "PASS";
+      let p = r.label || "";
+      if (p.length > 36) p = p.slice(0, 28) + "...(len=" + p.length + ")";
+      const cleanPath = `"${p.replace(/"/g, '""')}"`;
+      lines.push([
+        v.id,
+        v.name,
+        r.id,
+        r.category,
+        cleanPath,
+        r.expected,
+        v.decision,
+        verd,
+        cont,
+        typ,
+        pol
+      ].join(","));
+    }
+  }
+  return lines.join("\n");
+}
+
+async function handleDownloadCsv(e) {
+  if (window.ACTIVE_SUITE_DATA) {
+    e.preventDefault();
+    downloadBlob(suiteToCsv(window.ACTIVE_SUITE_DATA), "results.csv");
+    return;
+  }
+  e.preventDefault();
+  try {
+    const res = await fetch("/results.csv");
+    if (!res.ok) {
+      const txt = await res.text();
+      let msg = res.statusText;
+      try { const j = JSON.parse(txt); if (j.error) msg = j.error; } catch(_) {}
+      alert("Could not download results.csv: " + msg);
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "results.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert("Could not download results.csv: " + err.message);
+  }
+}
+
 $("#runsuite").addEventListener("click", runSuite);
 $("#runrace").addEventListener("click", runRace);
+$("#dl-csv")?.addEventListener("click", handleDownloadCsv);
 api("/api/info").then(init).catch((e) => ($("#root").textContent = "server error: " + e.message));
